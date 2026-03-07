@@ -2,9 +2,11 @@
 
 出典: 『Real World HTTP 第3版 ―歴史とコードに学ぶインターネットとウェブ技術』（渋川よしき）
 
-## Handson
+## Hands-on
 
-In HTTP0.9, the client just send a GET request to get contents, and server serves html body. That's it!
+In HTTP/0.9, the client just sends a GET request to fetch content, and the server returns an HTML body. That's it.
+
+Note: The following results use HTTP/1.0 because HTTP/0.9 compatibility is currently broken.
 
 Client logs.
 
@@ -22,3 +24,19 @@ Host: localhost:18888
 Accept: */*
 User-Agent: curl/8.13.0
 ```
+
+## From HTTP/0.9 to HTTP/1.0
+
+Client side:
+
+- When a user makes a request, they specify the method (GET) and HTTP version.
+- New fields were added, such as `Host`, `User-Agent`, and `Accept`.
+- Users can send data in the request body.
+
+Server side:
+
+- Status codes (200, etc.) were added.
+
+## What is a MIME type?
+
+A MIME type is a string used to distinguish file types. It originally comes from email.
