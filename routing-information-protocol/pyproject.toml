@@ -1,0 +1,15 @@
+[project]
+name = "routing-information-protocol"
+version = "0.1.0"
+description = "A small RIP routing simulation used for learning and experiments."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pytest>=9.0.2",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
