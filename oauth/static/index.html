@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OAuth PKCE Demo</title>
+  <style>
+    :root {
+      --bg: #f6f1e8;
+      --panel: rgba(255, 250, 242, 0.88);
+      --ink: #16202b;
+      --muted: #55606f;
+      --line: #d6c5ae;
+      --accent: #c04e2f;
+      --accent-2: #116466;
+      --code: #212733;
+      --code-ink: #eef3f8;
+      --shadow: 0 24px 70px rgba(60, 42, 18, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(245, 202, 146, 0.75), transparent 24%),
+        radial-gradient(circle at bottom right, rgba(104, 168, 166, 0.38), transparent 22%),
+        linear-gradient(135deg, #f7f1e7, #efe4d0 48%, #f7f3ec 100%);
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    .shell {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 22px;
+    }
+
+    .card {
+      background: var(--panel);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    h1, h2, h3, p {
+      margin-top: 0;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 20px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: linear-gradient(135deg, var(--accent), #d67a3f);
+      color: white;
+    }
+
+    .secondary {
+      background: transparent;
+      color: var(--accent-2);
+      border: 1px solid var(--accent-2);
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #fff0df;
+      color: #7a341f;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .legend {
+      display: grid;
+      gap: 10px;
+    }
+
+    .legend-item {
+      border-left: 4px solid var(--accent-2);
+      padding-left: 12px;
+    }
+
+    .topology {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .node {
+      background: rgba(255,255,255,0.55);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .node small {
+      color: var(--muted);
+    }
+
+    .flow-map {
+      margin-bottom: 22px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .flow-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .flow-box {
+      min-height: 124px;
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(247, 239, 226, 0.9));
+      box-shadow: var(--shadow);
+    }
+
+    .flow-box.browser {
+      border-color: #c98a60;
+    }
+
+    .flow-box.client {
+      border-color: #8d6d50;
+    }
+
+    .flow-box.auth {
+      border-color: #2b7a78;
+    }
+
+    .flow-box.resource {
+      border-color: #4d6b9a;
+    }
+
+    .flow-box h3 {
+      margin-bottom: 8px;
+    }
+
+    .flow-arrow {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .flow-arrow strong {
+      display: block;
+      color: var(--accent);
+      font-size: 24px;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .flow-note {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .flow-note .note {
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px dashed var(--line);
+      background: rgba(255,255,255,0.48);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 20px;
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 10px 12px;
+      align-items: start;
+      font-size: 14px;
+    }
+
+    .kv div:nth-child(odd) {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #eaf6f5;
+      color: #134d4f;
+      font-size: 12px;
+      font-weight: 700;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 14px;
+    }
+
+    .event {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.7);
+    }
+
+    .event-head {
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      background: linear-gradient(90deg, rgba(192,78,47,0.08), rgba(17,100,102,0.06));
+      border-bottom: 1px solid var(--line);
+    }
+
+    .event-body {
+      padding: 14px 16px 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    pre {
+      margin: 0;
+      padding: 14px;
+      border-radius: 14px;
+      background: var(--code);
+      color: var(--code-ink);
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 12.5px;
+      line-height: 1.45;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    @media (max-width: 1080px) {
+      .hero,
+      .grid,
+      .topology,
+      .flow-note {
+        grid-template-columns: 1fr;
+      }
+      .flow-row {
+        grid-template-columns: 1fr;
+      }
+      .flow-arrow strong {
+        transform: rotate(90deg);
+        display: inline-block;
+        margin: 8px 0;
+      }
+      .kv {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="card">
+        <p class="eyebrow">OAuth 2.0 Authorization Code + PKCE</p>
+        <h1>Local demo with client, authorization server, and resource server</h1>
+        <p>This page visualizes every step of the flow, including the PKCE method and values, the authorization code, the access token, and the request/response metadata moving between the components.</p>
+        <div class="cta-row">
+          <button class="primary" id="startFlow">Start OAuth Flow</button>
+          <button class="secondary" id="refreshState">Refresh State</button>
+        </div>
+        <p style="margin-top:16px"><span class="status" id="currentStep">Current step: idle</span></p>
+      </div>
+      <div class="card">
+        <p class="eyebrow">Demo Credentials</p>
+        <div class="legend">
+          <div class="legend-item"><strong>Authorization server login</strong><br /><span class="muted">Email: <code>demo@example.com</code></span></div>
+          <div class="legend-item"><strong>Authorization server login</strong><br /><span class="muted">Password: <code>password123</code></span></div>
+          <div class="legend-item"><strong>PKCE method</strong><br /><span class="muted">`S256` challenge derived from `code_verifier`</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="flow-map">
+      <div class="card">
+        <p class="eyebrow">Component Map</p>
+        <div class="flow-row">
+          <div class="flow-box browser">
+            <small>User Agent</small>
+            <h3>Browser / Client UI</h3>
+            <p>Renders this page, starts the flow, follows redirects, and displays the current OAuth step.</p>
+          </div>
+          <div class="flow-arrow">
+            <strong>→</strong>
+            initiates flow
+          </div>
+          <div class="flow-box client">
+            <small>Client Application</small>
+            <h3>Go App on :8000</h3>
+            <p>Creates <code>state</code>, <code>code_verifier</code>, and <code>code_challenge</code>, then exchanges the auth code for a token.</p>
+          </div>
+          <div class="flow-arrow">
+            <strong>→</strong>
+            redirects user
+          </div>
+          <div class="flow-box auth">
+            <small>Authorization Server</small>
+            <h3>Go Server on :9000</h3>
+            <p>Shows login, validates the dummy email/password, issues an authorization code, and checks PKCE at <code>/token</code>.</p>
+          </div>
+          <div class="flow-arrow">
+            <strong>→</strong>
+            bearer token
+          </div>
+          <div class="flow-box resource">
+            <small>Resource Server</small>
+            <h3>Go API on :7000</h3>
+            <p>Accepts the access token and returns dummy profile data from the protected resource endpoint.</p>
+          </div>
+        </div>
+        <div class="flow-note" style="margin-top:14px">
+          <div class="note"><strong>Front channel</strong><br />Browser redirects move the user between the client app and the authorization server.</div>
+          <div class="note"><strong>PKCE proof</strong><br /><code>code_challenge</code> goes to the authorization server first, then <code>code_verifier</code> is sent later to prove possession.</div>
+          <div class="note"><strong>Back channel</strong><br />The client app calls <code>/token</code> and then <code>/userinfo</code> directly using server-to-server HTTP.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="topology">
+      <div class="node card">
+        <small>Browser</small>
+        <h3>Redirect Driver</h3>
+        <p>Follows the authorization redirect, submits login, and returns to the client callback URL with the code.</p>
+      </div>
+      <div class="node card">
+        <small>Client Application</small>
+        <h3>OAuth Client</h3>
+        <p>Starts the flow, stores state and code_verifier, receives the callback, and exchanges the code for a token.</p>
+      </div>
+      <div class="node card">
+        <small>Authorization Server</small>
+        <h3>Dummy Login + Token</h3>
+        <p>Checks the demo email/password, issues an authorization code, and validates PKCE at the token endpoint.</p>
+      </div>
+      <div class="node card">
+        <small>Resource Server</small>
+        <h3>Protected API</h3>
+        <p>Accepts the bearer token and returns dummy profile data so the completed flow remains visible.</p>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <p class="eyebrow">Flow State</p>
+        <div class="kv" id="stateGrid">
+          <div>Session</div><div class="empty">No session yet</div>
+        </div>
+      </div>
+      <div class="card">
+        <p class="eyebrow">PKCE Focus</p>
+        <div id="pkceSummary">
+          <span class="pill">Method: not started</span>
+        </div>
+        <pre id="pkceExplain">Click "Start OAuth Flow" to generate a code_verifier and its S256 code_challenge.</pre>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:20px">
+      <p class="eyebrow">Request / Response Timeline</p>
+      <div class="timeline" id="timeline">
+        <p class="empty">No flow events yet.</p>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const clientBaseURL = {{printf "%q" .ClientBaseURL}};
+    let sessionID = new URLSearchParams(window.location.search).get("session_id") || "";
+    let pollingHandle = null;
+
+    const currentStepEl = document.getElementById("currentStep");
+    const stateGridEl = document.getElementById("stateGrid");
+    const pkceSummaryEl = document.getElementById("pkceSummary");
+    const pkceExplainEl = document.getElementById("pkceExplain");
+    const timelineEl = document.getElementById("timeline");
+
+    document.getElementById("startFlow").addEventListener("click", async () => {
+      const response = await fetch("/api/start", { method: "POST" });
+      const data = await response.json();
+      sessionID = data.session_id;
+      history.replaceState({}, "", "/?session_id=" + encodeURIComponent(sessionID));
+      await loadState();
+      window.location.href = data.authorize_url;
+    });
+
+    document.getElementById("refreshState").addEventListener("click", () => {
+      loadState();
+    });
+
+    async function loadState() {
+      if (!sessionID) {
+        return;
+      }
+      const response = await fetch("/api/state?session_id=" + encodeURIComponent(sessionID));
+      if (!response.ok) {
+        return;
+      }
+      const data = await response.json();
+      renderState(data);
+    }
+
+    function renderState(data) {
+      currentStepEl.textContent = "Current step: " + (data.current_step || "idle");
+
+      const fields = [
+        ["Session ID", data.session_id],
+        ["Current Step", data.current_step],
+        ["State", data.state],
+        ["Code Verifier", data.code_verifier],
+        ["Code Challenge", data.code_challenge],
+        ["Challenge Method", data.code_challenge_method],
+        ["Authorization Code", data.auth_code || "not issued yet"],
+        ["Access Token", data.access_token || "not issued yet"],
+        ["Token Type", data.token_type || "n/a"],
+        ["Error", data.error || "none"],
+        ["Resource Data", data.resource_data ? JSON.stringify(data.resource_data, null, 2) : "not fetched yet"]
+      ];
+
+      stateGridEl.innerHTML = fields.map(([label, value]) => {
+        const htmlValue = escapeHTML(String(value));
+        return `<div>${escapeHTML(label)}</div><div><pre>${htmlValue}</pre></div>`;
+      }).join("");
+
+      pkceSummaryEl.innerHTML = `
+        <span class="pill">Method: ${escapeHTML(data.code_challenge_method || "not started")}</span>
+        <span class="pill">Verifier length: ${data.code_verifier ? data.code_verifier.length : 0}</span>
+        <span class="pill">Challenge length: ${data.code_challenge ? data.code_challenge.length : 0}</span>
+      `;
+
+      pkceExplainEl.textContent = JSON.stringify({
+        verifier_generation: "client uses crypto/rand to generate a random code_verifier",
+        challenge_derivation: "authorization server expects BASE64URL(SHA256(code_verifier))",
+        code_verifier: data.code_verifier || "",
+        code_challenge: data.code_challenge || "",
+        validation_happens_at: "POST /token",
+        state: data.state || ""
+      }, null, 2);
+
+      const events = data.events || [];
+      if (!events.length) {
+        timelineEl.innerHTML = '<p class="empty">No flow events yet.</p>';
+        return;
+      }
+
+      timelineEl.innerHTML = events.map((event) => `
+        <article class="event">
+          <div class="event-head">
+            <div>
+              <strong>Step ${escapeHTML(event.step || "?")}</strong>
+              <div>${escapeHTML(event.title || "")}</div>
+            </div>
+            <div class="meta-row">
+              <span>${escapeHTML(event.actor || "")}</span>
+              <span>${escapeHTML(event.time || "")}</span>
+            </div>
+          </div>
+          <div class="event-body">
+            <div class="meta-row">
+              <span>Method: ${escapeHTML(event.method || "-")}</span>
+              <span>Status: ${escapeHTML(String(event.status || "-"))}</span>
+              <span>URL: ${escapeHTML(event.url || "-")}</span>
+            </div>
+            <div>${escapeHTML(event.description || "")}</div>
+            <div><strong>Request</strong><pre>${escapeHTML(event.request || "n/a")}</pre></div>
+            <div><strong>Response</strong><pre>${escapeHTML(event.response || "n/a")}</pre></div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function escapeHTML(value) {
+      return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    if (sessionID) {
+      loadState();
+    }
+
+    pollingHandle = window.setInterval(() => {
+      if (sessionID) {
+        loadState();
+      }
+    }, 2000);
+  </script>
+</body>
+</html>
